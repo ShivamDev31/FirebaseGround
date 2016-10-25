@@ -1,10 +1,12 @@
 package com.shivamdev.admobdemo.common.ads;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +19,10 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.shivamdev.admobdemo.R;
 import com.shivamdev.admobdemo.common.Constants;
 
@@ -67,33 +72,59 @@ public class AdFragment1 extends Fragment {
         View view = inflater.inflate(R.layout.fragment_ad_1, container, false);
         ButterKnife.bind(this, view);
         remoteConfig = FirebaseRemoteConfig.getInstance();
-        /*FirebaseRemoteConfigSettings remoteConfigSettings = new FirebaseRemoteConfigSettings.Builder()
+        FirebaseRemoteConfigSettings remoteConfigSettings = new FirebaseRemoteConfigSettings.Builder()
                 .setDeveloperModeEnabled(true)
                 .build();
-        remoteConfig.setConfigSettings(remoteConfigSettings);*/
-        //remoteConfig.setDefaults(R.xml.remote_config_defaults);
+        remoteConfig.setConfigSettings(remoteConfigSettings);
+        remoteConfig.setDefaults(R.xml.remote_config_defaults);
+        fetchConfig();
 
         final Boolean showAds = remoteConfig.getBoolean(Constants.RemoteConfig.SHOW_ADS);
 
         bInterstitialAd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (showAds) {
-                    llAdsLayout.setVisibility(View.VISIBLE);
-                } else {
-                    llAdsLayout.setVisibility(View.GONE);
-                }
-                interstitialAd();
-                bannerAd();
-                if (interstitialAd.isLoaded()) {
-                    interstitialAd.show();
-                } else {
-                    tvAdLoaded.setText("Not loading ad");
-                }
+                fetchConfig();
+                updateAdsFromRemoteConfig(showAds);
             }
         });
 
         return view;
+    }
+
+    private void updateAdsFromRemoteConfig(boolean showAds) {
+        if (showAds) {
+            llAdsLayout.setVisibility(View.VISIBLE);
+        } else {
+            llAdsLayout.setVisibility(View.GONE);
+        }
+        interstitialAd();
+        bannerAd();
+        if (interstitialAd.isLoaded()) {
+            interstitialAd.show();
+        } else {
+            tvAdLoaded.setText("Not loading ad");
+        }
+    }
+
+    private void fetchConfig() {
+        boolean ads = remoteConfig.getBoolean(Constants.RemoteConfig.SHOW_ADS);
+        Log.d(TAG, "fetchConfig1: " + ads);
+        remoteConfig.fetch(0)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "Task successful: ");
+                            remoteConfig.activateFetched();
+                        } else {
+                            Log.d(TAG, "Task unsuccessful: ");
+                        }
+                    }
+                });
+        boolean adConfig = remoteConfig.getBoolean(Constants.RemoteConfig.SHOW_ADS);
+        Log.d(TAG, "fetchConfig1: " + adConfig);
+        updateAdsFromRemoteConfig(adConfig);
     }
 
     private void interstitialAd() {

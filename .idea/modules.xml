@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AdMobDemo.iml" filepath="$PROJECT_DIR$/AdMobDemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/FirebaseGround.iml" filepath="$PROJECT_DIR$/FirebaseGround.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
